@@ -5,7 +5,7 @@ pipeline {
     label 'golang2'
   }
   environment {
-    APP_NAME = "carts"
+    APP_NAME = "catalogue"
     VERSION = readFile('version').trim()
     ARTEFACT_ID = "sockshop-" + "${env.APP_NAME}"
     TAG = "${env.DOCKER_REGISTRY_URL}:5000/sockshop-registry/${env.ARTEFACT_ID}"
