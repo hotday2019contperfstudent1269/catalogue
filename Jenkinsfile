@@ -62,8 +62,8 @@ pipeline {
           */
           withCredentials([usernamePassword(credentialsId: 'docker-io', passwordVariable: 'TOKEN', usernameVariable: 'USER')]) {
             sh "docker login --username=${USER} --password=${TOKEN} https://docker.io"
-            sh "docker tag ${env.TAG_DEV} https://docker.io/bacherfl/carts:0.5.0"
-            sh "docker push https://docker.io/bacherfl/carts:0.5.0"
+            sh "docker tag ${env.TAG_DEV} bacherfl/carts:0.5.0"
+            sh "docker push bacherfl/carts:0.5.0"
           }
         }
       }
