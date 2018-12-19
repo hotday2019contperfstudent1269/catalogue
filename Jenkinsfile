@@ -66,17 +66,10 @@ pipeline {
       }
       steps {
         container('docker') {
-          /*
           withCredentials([usernamePassword(credentialsId: 'registry-creds', passwordVariable: 'TOKEN', usernameVariable: 'USER')]) {
             sh "docker login --username=anything --password=${TOKEN} ${env.DOCKER_REGISTRY_URL}:5000"
             sh "docker tag ${_TAG_DEV} ${_TAG_DEV}"
             sh "docker push ${_TAG_DEV}"
-          }
-          */
-          withCredentials([usernamePassword(credentialsId: 'docker-io', passwordVariable: 'TOKEN', usernameVariable: 'USER')]) {
-            sh "docker login --username=${USER} --password=${TOKEN} https://docker.io"
-            sh "docker tag ${_TAG_DEV} bacherfl/carts:0.5.0"
-            sh "docker push https://bacherfl/carts:0.5.0"
           }
         }
       }
