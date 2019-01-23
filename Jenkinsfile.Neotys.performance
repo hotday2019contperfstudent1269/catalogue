@@ -1,0 +1,100 @@
+@Library('dynatrace@master') _
+
+pipeline {
+  agent {
+    label 'git'
+  }
+  environment {
+    APP_NAME = "catalogue"
+    DYNATRACEID="${env.DT_ACCOUNTID}.sprint.dynatracelabs.com"
+    DYNATRACEAPIKEY="${env.DT_API_TOKEN}"
+    NLAPIKEY="${env.NL_WEB_API_KEY}"
+    NL_DT_TAG="[Kubernetes]app:${env.APP_NAME},environment:dev"
+    OUTPUTSANITYCHECK="$WORKSPACE/infrastructure/sanitycheck.json"
+    NEOLOAD_ASCODEFILE="$WORKSPACE/test/neoload/catalogue_neoload.yaml"
+    NEOLOAD_ANOMALIEDETECTIONFILE="$WORKSPACE/monspec/catalogue_anomalieDection.json"
+    BASICCHECKURI="health"
+    TAGURI="tag"
+    GITORIGIN="neotyslab"
+  }
+  stages {
+   stage('Start NeoLoad infrastructure') {
+
+      steps {
+              checkout scm
+              container('kubectl') {
+                  script {
+                   sh "kubectl create -f $WORKSPACE/infrastructure/infrastructure/neoload/lg/docker-compose.yml"
+                  }
+              }
+      }
+
+    }
+    stage('Performance Check') {
+      steps {
+
+
+        recordDynatraceSession(
+          envId: 'Dynatrace Tenant',
+          testCase: 'loadtest',
+          tagMatchRules: [
+            [
+              meTypes: [
+                [meType: 'SERVICE']
+              ],
+              tags: [
+                [context: 'CONTEXTLESS', key: 'app', value: "${env.APP_NAME}"],
+                [context: 'CONTEXTLESS', key: 'environment', value: 'dev']
+              ]
+            ]
+          ]
+        ) 
+        {
+          sh "sed -i 's/CHECK_TO_REPLACE/${BASICCHECKURI}/'  ${NEOLOAD_ASCODEFILE}"
+          sh "sed -i 's/TAGURL_TO_REPLACE/${TAGURI}/'  ${NEOLOAD_ASCODEFILE}"
+          sh "sed -i 's/HOST_TO_REPLACE/${env.APP_NAME}.dev.svc/'  ${NEOLOAD_ASCODEFILE}"
+          sh "sed -i 's/PORT_TO_REPLACE/80/'  ${NEOLOAD_ASCODEFILE}"
+          sh "sed -i 's/DTID_TO_REPLACE/${DYNATRACEID}/'  ${NEOLOAD_ASCODEFILE}"
+          sh "sed -i 's/APIKEY_TO_REPLACE/${DYNATRACEAPIKEY}/'  ${NEOLOAD_ASCODEFILE}"
+          sh "sed -i 's,JSONFILE_TO_REPLACE,${NEOLOAD_ANOMALIEDETECTIONFILE},'  ${NEOLOAD_ASCODEFILE}"
+          sh "sed -i 's/TAGS_TO_REPLACE/${NL_DT_TAG}/'  ${NEOLOAD_ASCODEFILE}"
+          sh "sed -i 's,OUTPUTFILE_TO_REPLACE,${OUTPUTSANITYCHECK},'  ${NEOLOAD_ASCODEFILE}"
+
+          container('neoload') {
+          script {
+                     sh "mkdir -p /home/jenkins/.neotys/neoload"
+                     sh "cp $WORKSPACE/infrastructure/infrastructure/neoload/license.lic /home/jenkins/.neotys/neoload/"
+
+                     status =sh(script:"/neoload/bin/NeoLoadCmd -project $WORKSPACE/test/neoload/load_template/load_template.nlp ${NEOLOAD_ASCODEFILE} -testResultName PerfCheck_catalogue_${BUILD_NUMBER} -description PerfCheck_catalogue_${BUILD_NUMBER} -nlweb -L CatalogueLoad=$WORKSPACE/infrastructure/infrastructure/neoload/lg/remote.txt -L Population_Dynatrace_Integration=$WORKSPACE/infrastructure/infrastructure/neoload/lg/local.txt -nlwebToken $NLAPIKEY -launch CatalogueLoad -noGUI", returnStatus: true)
+
+                      if (status != 0) {
+                                currentBuild.result = 'FAILED'
+                                error "Health check in dev failed."
+                      }
+
+                    }
+
+          }
+        }
+
+        perfSigDynatraceReports(
+          envId: 'Dynatrace Tenant', 
+          nonFunctionalFailure: 1, 
+          specFile: "monspec/${env.APP_NAME}_perfsig.json"
+        ) 
+      }
+    }
+  }
+  post {
+          always {
+            container('kubectl') {
+                   script {
+                    echo "delete neoload infrastructure"
+                    sh "kubectl delete svc nl-lg-catalogue -n cicd-neotys"
+                    sh "kubectl delete pod nl-lg-catalogue -n cicd-neotys --grace-period=0 --force"
+                   }
+            }
+          }
+
+  }
+}
