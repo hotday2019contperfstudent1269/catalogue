@@ -1,36 +1,54 @@
 {
-    "_lowerLimit" : 0,
-    "_upperLimit" : 1000,
     "timeseries" : [
         {
             "timeseriesId" : "com.dynatrace.builtin:service.responsetime",
             "aggregation" : "avg",
-            "tags" : "app:catalogue,environment:dev",
-            "upperLimit" : 1000
+            "tags" : "[Kubernetes]app:catalogue,environment:dev"
         },
+        {
+            "timeseriesId": "com.dynatrace.builtin:host.mem.used",
+            "aggregation": "avg"
+        }        
+    ],
+    "_more_timeseries" : [
         {
             "timeseriesId" : "com.dynatrace.builtin:service.responsetime",
             "aggregation" : "percentile",
-            "tags" : "app:catalogue,environment:dev",
-            "upperLimit" : 1000
+            "tags" : "[Kubernetes]app:catalogue,environment:dev",
+            "upperSevere" : 1000,
+            "upperWarning" : 800
         },
         {
             "timeseriesId" : "com.dynatrace.builtin:service.requests",
             "aggregation" : "count",
-            "tags" : "app:catalogue,environment:dev",
-            "lowerLimit" : 1
+            "tags" : "[Kubernetes]app:catalogue,environment:dev"
         },
         {
             "timeseriesId" : "com.dynatrace.builtin:service.requestspermin",
             "aggregation" : "count",
-            "tags" : "app:catalogue,environment:dev",
-            "lowerLimit" : 1
+            "tags" : "[Kubernetes]app:catalogue,environment:dev",
+            "lowerWarning" : 5
         },
         {
             "timeseriesId" : "com.dynatrace.builtin:service.failurerate",
             "aggregation" : "avg",
-            "tags" : "app:catalogue,environment:dev",
-            "upperLimit" : 0
-        }
+            "tags" : "[Kubernetes]app:catalogue,environment:dev",
+            "upperSevere" : 10,
+            "upperWarning" : 2
+        },
+        {
+            "timeseriesId": "com.dynatrace.builtin:docker.container.memory",
+            "aggregation": "avg",
+            "upperSevere": 1500,
+            "upperWarning": 500
+          },
+          {
+            "timeseriesId": "com.dynatrace.builtin:docker.container.running",
+            "aggregation": "avg"
+          }
+          {
+            "timeseriesId": "com.dynatrace.builtin:host.mem.used",
+            "aggregation": "avg"
+          }        
     ]
 }
