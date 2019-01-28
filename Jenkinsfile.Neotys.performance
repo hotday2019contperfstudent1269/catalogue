@@ -9,7 +9,7 @@ pipeline {
     DYNATRACEID="${env.DT_ACCOUNTID}.sprint.dynatracelabs.com"
     DYNATRACEAPIKEY="${env.DT_API_TOKEN}"
     NLAPIKEY="${env.NL_WEB_API_KEY}"
-    NL_DT_TAG="\\\[Kubernetes\\\]app:${env.APP_NAME},environment:dev"
+    NL_DT_TAG="\\\\[Kubernetes\\\\]app:${env.APP_NAME},environment:dev"
     OUTPUTSANITYCHECK="$WORKSPACE/infrastructure/sanitycheck.json"
     NEOLOAD_ASCODEFILE="$WORKSPACE/test/neoload/catalogue_neoload.yaml"
     NEOLOAD_ANOMALIEDETECTIONFILE="$WORKSPACE/monspec/catalogue_anomalieDection.json"
