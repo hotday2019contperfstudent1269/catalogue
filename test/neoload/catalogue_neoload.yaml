@@ -26,7 +26,7 @@ variables:
     value: OUTPUTFILE_TO_REPLACE
 - constant:
     name: TAGS
-    value: TAGS_TO_REPLACE
+    value: "TAGS_TO_REPLACE"
 servers:
 - name: catalogue_host
   host: ${server_host}
