@@ -45,7 +45,7 @@
           {
             "timeseriesId": "com.dynatrace.builtin:docker.container.running",
             "aggregation": "avg"
-          }
+          },
           {
             "timeseriesId": "com.dynatrace.builtin:host.mem.used",
             "aggregation": "avg"
